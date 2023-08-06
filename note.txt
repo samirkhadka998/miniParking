@@ -92,6 +92,8 @@ git remote add origin https://github.com/samirkhadka998/miniParking.git
 
 git branch -M main
 
+test
+
  
  
 flask --app app.py --debug run
