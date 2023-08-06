@@ -1,0 +1,97 @@
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    username TEXT NOT NULL,
+    hash TEXT NOT NULL
+
+);
+
+CREATE TABLE brand (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    name TEXT NOT NULL,
+    sorting int default 0 
+
+);
+
+insert into brand(name) values ('Yamaha'), ('Suzuki'), ('Honda');
+
+
+
+CREATE TABLE discountCard (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    customer TEXT NOT NULL,
+    percentage REAL NOT NULL
+ );
+
+insert into discountCard (customer, percentage) values ('Normal', 10), ('Investor',90), ('Worker', 95), ('None', 0);
+
+CREATE TABLE vehicleType (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    type TEXT NOT NULL
+);
+
+insert into vehicleType(type) values ('Car'), ('Bike')
+
+CREATE TABLE location (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    name TEXT NOT NULL,
+    isUsed DEFAULT 0
+);
+
+insert into location(name) values 
+('A'),
+('B'),
+('C'),
+('D'),
+('E'),
+('F'),
+('G'),
+('H'),
+('I'),
+('J'),
+('TRANSIT');
+
+
+
+CREATE TABLE checkIn (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    type INT NOT NULL,
+    number TEXT NOT NULL,
+    creationTime DATETIME DEFAULT CURRENT_TIMESTAMP,
+    discount INT NOT NULL,
+    brand INT NOT NULL,
+    FOREIGN KEY (type) REFERENCES vehicleType (id)
+    FOREIGN KEY (discount) REFERENCES discountCard (id),
+    FOREIGN KEY (brand) references brand(id)
+);
+
+CREATE TABLE checkOut (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    checkInId INT NOT NULL,
+    isPaid INT NOT NULL,
+    amount REAL NULL,
+    createdOn DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (checkInId) REFERENCES checkIn (id)
+);
+
+CREATE TABLE move (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    checkInId INTEGER NOT NULL,
+    fromLocationId INTEGER NOT NULL,
+    toLocationId INTEGER NOT NULL,
+    moveTime DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (checkInId) REFERENCES checkIn (id),
+    FOREIGN KEY (fromLocationId) REFERENCES location (id),
+    FOREIGN KEY (toLocationId) REFERENCES location (id)
+);
+
+
+git init
+git remote add origin https://github.com/samirkhadka998/mini_parking.git
+
+git remote add origin https://github.com/samirkhadka998/miniParking.git
+
+git branch -M main
+
+ 
+ 
+flask --app app.py --debug run
