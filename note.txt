@@ -1,4 +1,4 @@
-CREATE TABLE users (
+CREATE TABLE user (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     username TEXT NOT NULL,
     hash TEXT NOT NULL
@@ -22,14 +22,14 @@ CREATE TABLE discountCard (
     percentage REAL NOT NULL
  );
 
-insert into discountCard (customer, percentage) values ('Normal', 10), ('Investor',90), ('Worker', 95), ('None', 0);
+insert into discount_card (customer, percentage) values ('Normal', 10), ('Investor',90), ('Worker', 95), ('None', 0);
 
 CREATE TABLE vehicleType (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     type TEXT NOT NULL
 );
 
-insert into vehicleType(type) values ('Car'), ('Bike')
+insert into vehicle_Type(type) values ('Car'), ('Bike');
 
 CREATE TABLE location (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -85,15 +85,10 @@ CREATE TABLE move (
 );
 
 
-git init
-git remote add origin https://github.com/samirkhadka998/mini_parking.git
 
-git remote add origin https://github.com/samirkhadka998/miniParking.git
-
-git branch -M main
-
-test
 
  
  
-flask --app app.py --debug run
+flask --app app.py --debug 
+
+pip uninstall sqlalchemy

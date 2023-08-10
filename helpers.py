@@ -5,11 +5,15 @@ from functools import wraps
 def query_db(query, args=(), one=False):
     conn = sqlite3.connect('miniParking.db')
     cur = conn.cursor()
+    print(query)
     cur.execute(query, args)
+    conn.commit()
     rv = cur.fetchall()
     cur.close()
     conn.close()
     return (rv[0] if rv else None) if one else rv
+
+
 
 def login_required(f):
     """
