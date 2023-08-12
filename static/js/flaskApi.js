@@ -11,7 +11,13 @@ $(document).ready(function () {
     $.post(apiRoute, form.serialize())
       .done(function (response) {
         // If form submission is successful, handle the response (e.g., redirect or show success message)
-        showMessage("Data saved successfully",'s')
+        if(apiRoute == "/login"){
+          showMessage("Login successful.",'s')
+        }
+        else{
+          showMessage("Data saved successfully.",'s')
+        }
+        
         $("#btnSubmit")
         setTimeout(function() {
           window.location.href = redirectUrl; // Use the retrieved target URL for redirection
@@ -60,6 +66,58 @@ $(document).ready(function () {
       alertElement.remove();
     }, 30000);
   }
+
+  $("#btnCheckIn").click(function (e) {
+    e.preventDefault();
+
+    var apiRoute = $(this).data("api-route");
+ 
+   
+
+    $.get(apiRoute)
+      .done(function (res) {
+       console.log(res)
+       bindJSONToSelect(res.brands,"id","name","brand");
+       bindJSONToSelect(res.types,"id","type","type");
+       bindJSONToSelect(res.empty_locations,"id","name","location");
+       bindJSONToSelect(res.discounts,"id","customer","discount");
+
+      })
+      .fail(function (error) {
+        // If form submission fails, display the error in Bootstrap toaster
+        showMessage(error.responseJSON?.error,'d')
+      })
+      .always(function() {
+        
+
+    });
+  });
+
+  function bindJSONToSelect(jsonData, valuePropertyName, textPropertyName, selectId) {
+  const selectElement = document.getElementById(selectId);
+
+  if (!selectElement) {
+    console.error(`Select element with ID ${selectId} not found.`);
+    return;
+  }
+
+  selectElement.innerHTML = ""; // Clear existing options
+
+  const defaultOption = document.createElement("option");
+  defaultOption.disabled = true;
+  defaultOption.selected = true;
+  defaultOption.value = "";
+  defaultOption.textContent = "Select One";
+  selectElement.appendChild(defaultOption);
+
+  for (const item of jsonData) {
+    const option = document.createElement("option");
+    option.value = item[valuePropertyName];
+    option.text = item[textPropertyName];
+    selectElement.appendChild(option);
+  }
+}
+
 
 });
 
