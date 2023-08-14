@@ -29,7 +29,7 @@ CREATE TABLE vehicleType (
     type TEXT NOT NULL
 );
 
-insert into vehicle_Type(type) values ('Car'), ('Bike');
+insert into vehicle_Type(type,rate) values ('Car',10), ('Bike',5);
 
 CREATE TABLE location (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,

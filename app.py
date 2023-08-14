@@ -1,13 +1,16 @@
 from flask import Flask, render_template,session, request, redirect, jsonify,g
-from sqlalchemy import desc
+from sqlalchemy import desc, func, or_, text
 from helpers import  login_required
 from werkzeug.security import check_password_hash, generate_password_hash
 import secrets
 import logging
 logging.basicConfig(level=logging.DEBUG)  # Set the logging level to DEBUG
+from datetime import datetime
 
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
+
+ 
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///miniParking.db'
@@ -54,6 +57,7 @@ class DiscountCardSchema(ma.Schema):
 class VehicleType(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     type = db.Column(db.String, nullable=False)
+    rate = db.Column(db.Integer, nullable= False)
 
 
 class VehicleTypeSchema(ma.Schema):
@@ -132,26 +136,120 @@ def init_db():
 def get():
     if request.method == "GET":
 
-        # q = (db.session.query(CheckIn, Location, VehicleType,DiscountCard, Move,Brand)
-        # .select_from(CheckIn)
-        # .outerjoin(Move, (Move.fromLocationId == Location.id | Move.toLocationId == Location.id))
-        # .join(Location)
-        # .join(VehicleType)
-        # .join(DiscountCard)
-        # .join(Brand)
-        # .filter(Location.isUsed == 0)
-        # .order_by(desc(CheckIn.creationTime))
-        # ).all()
+        query = db.session.query(
+        CheckIn.id,
+        CheckIn.number,
+        VehicleType.type,
+        VehicleType.rate,
+        Brand.name.label('brand'),
+        Location.name,
+        CheckIn.creationTime,
+        DiscountCard.customer,
+        DiscountCard.percentage
 
-        # print(q)
+          # Calculate difference in hours
+
+
+    ).join(
+        VehicleType,
+        VehicleType.id == CheckIn.type,
+        isouter= True
+    ).join(
+        Brand,
+        Brand.id == CheckIn.brand,
+        isouter=True
+    ).join(
+        Move,
+        Move.checkInId == CheckIn.id,
+        isouter=True
+    ).join(
+        Location,
+        Location.id == Move.toLocationId,
+        isouter= True
+    ).join(
+        CheckOut,
+        CheckOut.checkInId == CheckIn.id,    
+        isouter= True
+    ).join(
+        DiscountCard,
+        DiscountCard.id == CheckIn.discount,
+        isouter= True
+    ).order_by(CheckIn.creationTime.desc()).all()
+
+
+
+        # .filter(or_(CheckOut.id == None, CheckOut.id.is_(None))).order_by(CheckIn.creationTime.desc()).all() 
+    current_time = datetime.utcnow()
+    summaryQuery = []
+    print('query : ' ,len(query))
+    for row in query:
+        row_dict = {
+            'id':row.id,
+            'number': row.number,
+            'type': row.type,
+            'brand': row.brand,
+            'location': row.name,
+            'creationTime': row.creationTime,
+            'customer': row.customer,
+            'percentage': row.percentage,
+            'rate': row.rate
+        }
+        hours_since_creation = (current_time - row.creationTime).total_seconds() / 3600
+        row_dict['hour'] = 1 if 0 < hours_since_creation < 1 else int(hours_since_creation)
+        totalFee = row.rate * row_dict['hour'] 
+        row_dict['fee'] = totalFee * (1 - row.percentage/100)
+        # property_names = row._fields
+        # row_data = row._asdict()  # Convert Row to a dictionary
+        # print(property_names)  # Print the property names for this row
+        # print(row_data)  # Print the actual row data
+
+        summaryQuery.append(row_dict)
+
+
          
-        return render_template('index.html')
+    return render_template('index.html', summaryQuery = summaryQuery)
     # return jsonify({'msg' : 'hellos world'})
 
 
-@app.route("/arrivalReport")
-def arrivalReport():
-    return render_template('arrivalHistory.html')
+@app.route("/checkInReport")
+def checkInReport():
+    checkInsQuery = db.session.query(
+        CheckIn.number,
+        VehicleType.type,
+        Brand.name.label('brand'),
+        Location.name,
+        CheckIn.creationTime,
+        DiscountCard.customer,
+        DiscountCard.percentage
+    ).join(
+        VehicleType,
+        VehicleType.id == CheckIn.type,
+        isouter= True
+    ).join(
+        Brand,
+        Brand.id == CheckIn.brand,
+        isouter=True
+    ).join(
+        Move,
+        Move.checkInId == CheckIn.id,
+        isouter=True
+    ).join(
+        Location,
+        Location.id == Move.toLocationId,
+        isouter= True
+    ).join(
+        DiscountCard,
+        DiscountCard.id == CheckIn.discount,
+        isouter= True
+    ).order_by(CheckIn.creationTime.desc()).all() 
+    
+    for row in checkInsQuery:
+        property_names = row._fields
+        row_data = row._asdict()  # Convert Row to a dictionary
+        print(property_names)  # Print the property names for this row
+        print(row_data)  # Print the actual row data
+
+    return render_template('checkInReport.html', checkInsQuery = checkInsQuery)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -255,6 +353,25 @@ def checkIn():
 
             if not number or not type or not brand or not location or not discount:
                  return jsonify({"error": "Please provide valid input."}), 400  
+            
+            existingVehicle : CheckIn = db.session.query(
+                                    CheckIn.number,
+                                    CheckIn.brand,
+                                    
+                                    ).join(
+                                        CheckOut,
+                                        CheckOut.checkInId == CheckIn.id,
+                                        isouter= True
+                                    ).filter(
+                CheckOut.id == None,
+                CheckIn.brand == brand,
+                CheckIn.number == number
+                
+                
+                ).first()   
+            print(existingVehicle)
+            if existingVehicle:
+                return jsonify({"error": "Vehicle already in parking."}), 400
 
             checkIn = CheckIn(type = type, number = number, discount = discount, brand = brand)
 
@@ -266,14 +383,11 @@ def checkIn():
             inMove : Move = Move(checkInId = checkIn.id, fromLocationId = transit.id, toLocationId = location)
             db.session.add(inMove)
 
-            location_to_update: Location = Location.query.get(location)
-
-            if location_to_update:
-                location_to_update.isUsed = 1
-
             db.session.commit()
 
-           
+            locationUpdate(location, 1)
+
+            return jsonify({"message": "Check-in successful."}), 200
          
         except Exception as e:
             logging.debug(f"error is {e}")
@@ -306,7 +420,7 @@ def getCheckInData():
 
 @login_required
 def load_empty_locations():
-    empty_location =  Location.query.filter_by(isUsed = 0).all()
+    empty_location =  Location.query.filter_by(isUsed = 0).filter_by(isHidden = 0).all()
     if len(empty_location) == 0 :
         return jsonify({"error": "All locations are occupied.Please check out vehicle."}), 400
     
@@ -341,6 +455,14 @@ def findLocationTransit():
     return transitLocation
 
 
+@login_required
+def locationUpdate(id, value):
+    print(id, value)
+    location_to_update: Location = Location.query.filter_by(id = id).first();
+
+    if location_to_update:
+            location_to_update.isUsed = value
+            db.session.commit()
 
 
 

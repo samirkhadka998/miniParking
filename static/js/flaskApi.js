@@ -3,6 +3,11 @@ $(document).ready(function () {
     e.preventDefault();
     var form = $(this).closest('form');
     var apiRoute = form.data("api-route");
+    // if(apiRoute == "/checkIn"){
+    //     // Close the modal using the modal API
+    //     var modal = new bootstrap.Modal(document.getElementById("checkInModal"));
+    //     modal.hide(); // Close the modal
+    // }
     var targetUrl = form.data("target-url"); // Get the target URL from the custom attribute
     var redirectUrl = targetUrl || "/"
 
@@ -82,6 +87,14 @@ $(document).ready(function () {
        bindJSONToSelect(res.empty_locations,"id","name","location");
        bindJSONToSelect(res.discounts,"id","customer","discount");
 
+       var checkInModal = document.getElementById("checkInModal");
+
+       var modal = new bootstrap.Modal(checkInModal);
+       modal.show();
+
+
+
+
       })
       .fail(function (error) {
         // If form submission fails, display the error in Bootstrap toaster
@@ -92,6 +105,25 @@ $(document).ready(function () {
 
     });
   });
+
+  $("#btnMove").click(function() {
+    var brand = $(this).data("id");
+    var location = $(this).data("location");
+
+    console.log(brand,location)
+
+
+   
+});
+
+$("#btnCheckOut").click(function() {
+  var s = $(this).data("s");
+  var sObject = JSON.parse(s);
+  console.log("check button clicked with data:", sObject);
+  // Your move logic here
+});
+
+
 
   function bindJSONToSelect(jsonData, valuePropertyName, textPropertyName, selectId) {
   const selectElement = document.getElementById(selectId);

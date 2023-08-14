@@ -6,22 +6,22 @@ Index
 
 
 {% block main %}
-<!-- Modal -->
+<!--CheckIn Modal -->
 <div class="modal fade" id="checkInModal" tabindex="-1" aria-labelledby="checkInModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="checkInModalLabel">Modal title</h5>
+        <h5 class="modal-title" id="checkInModalLabel">Add Check In</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <form id="checkIn-form" data-api-route="/checkIn" data-target-url="/">
         <div class="modal-body">
-         
+
           <div class="mb-3">
             <label for="type" class="form-label">Type</label>
 
             <select id="type" name="type" class="form-select" aria-label="Default select example" required>
-             
+
             </select>
             <div class="invalid-feedback">Please select a valid option.</div>
 
@@ -29,7 +29,7 @@ Index
           <div class="mb-3">
             <label for="brand" class="form-label">Brand</label>
             <select id="brand" name="brand" class="form-select" aria-label="Default select example" required>
-             
+
             </select>
           </div>
           <div class="mb-3">
@@ -40,16 +40,51 @@ Index
           <div class="mb-3">
             <label for="location" class="form-label">Location</label>
             <select id="location" name="location" class="form-select" aria-label="Default select example" required>
-            
+
             </select>
           </div>
 
           <div class="mb-3">
             <label for="discount" class="form-label">Discount</label>
             <select id="discount" name="discount" class="form-select" aria-label="Default select example" required>
-            
+
             </select>
           </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button id="btnSubmit" type="submit" class="btn btn-primary">Save changes</button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<!--move Modal -->
+<div class="modal fade" id="moveModal" tabindex="-1" aria-labelledby="moveModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="moveModalLabel">Move</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="move-form" data-api-route="/move" data-target-url="/">
+        <div class="modal-body">
+
+          <div class="mb-3">
+            <label for="type" class="form-label">Current Location</label>
+            <label for="type" class="form-label"></label>
+          </div>
+         
+          <div class="mb-3">
+            <label for="location" class="form-label">Location</label>
+            <select id="location" name="location" class="form-select" aria-label="Default select example" required>
+
+            </select>
+          </div>
+
 
         </div>
         <div class="modal-footer">
@@ -64,49 +99,48 @@ Index
 <div class="row justify-content-end">
   <div class="col-4">
     <!-- Button trigger modal -->
-    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#checkInModal">
-      Check In test
-    </button>
     <button type="button" class="btn btn-primary" id="btnCheckIn" data-api-route="/checkInDatas">
       Check In
     </button>
   </div>
 </div>
-
 <table class="table">
   <thead>
     <tr>
       <th scope="col">#</th>
-      <th scope="col">Vehicle</th>
       <th scope="col">Type</th>
-      <th scope="col">discount</th>
-      <th scope="col">Discount</th>
+      <th scope="col">Vehicle</th>
+      <th scope="col">Location</th>
+      <th scope="col">Arrived On</th>
       <th scope="col">Hour</th>
+      <th scope="col">Rate</th>
+      <th scope="col">Discount</th>
       <th scope="col">Fee</th>
-      <th scope="col">Time</th>
       <th scope="col">Action</th>
 
 
     </tr>
   </thead>
   <tbody>
+
+
+    {% for s in summaryQuery %}
     <tr>
-      <th scope="row">1</th>
-      <td>Mark</td>
-      <td>Otto</td>
-      <td>@mdo</td>
+      <td>{{loop.index}}</td>
+      <td>{{s.type}}</td>
+      <td>{{s.brand}} {{s.number}}</td>
+      <td>{{s.location}}</td>
+      <td>{{s.creationTime}}</td>
+      <td>{{s.hour}}</td>
+      <td>${{s.rate}}</td>
+      <td>{{s.percentage | string}}%</td>
+      <td>${{s.fee}}</td>
+      <td>
+        <button id="btnMove" type="button" class="btn btn-outline-success btn-sm" data-id="{{s.id}}" data-location = {{s.location}}>Move</button>
+        <button id="btnCheckOut" type="button" class="btn btn-outline-danger btn-sm" data-id="{{s.id}}" data-fee = "{{s.fee}}">Check Out</button>
+      </td>
     </tr>
-    <tr>
-      <th scope="row">2</th>
-      <td>Jacob</td>
-      <td>Thornton</td>
-      <td>@fat</td>
-    </tr>
-    <tr>
-      <th scope="row">3</th>
-      <td colspan="2">Larry the Bird</td>
-      <td>@twitter</td>
-    </tr>
+    {% endfor %}
   </tbody>
 </table>
 {% endblock %}
