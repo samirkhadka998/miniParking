@@ -1,79 +1,77 @@
-
 <!DOCTYPE html>
 <html>
 
 <head>
-    <title>Mini Parking: {% block title %}{% endblock %}</title>
-    <!-- Load Bootstrap CSS from your local static folder -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap-5.3.1-dist/css/bootstrap.min.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
-    
- 
+  <title>Mini Parking: {% block title %}{% endblock %}</title>
+  <!-- Load Bootstrap CSS from your local static folder -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap-5.3.1-dist/css/bootstrap.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+
+
 
 </head>
 
 <body>
   <div class="container">
-  
+    <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
+
+      {% if session["user_id"]%}
+      <ul class="nav nav-pills">
+        <li class="nav-item"><a href="/" class="nav-link" aria-current="page">Home</a></li>
+        <li class="nav-item"><a href="/checkInReport" class="nav-link">Check In Report</a></li>
+        <li class="nav-item"><a href="/checkOutReport" class="nav-link">Check Out Report</a></li>
+        <li class="nav-item"><a href="/moveReport" class="nav-link">Move Report</a></li>
+        <li class="nav-item"><a class="nav-link" href="/logout">Log Out</a></li>
+      </ul>
+      {% else %}
+      <ul class="nav nav-pills">
+        <li class="nav-item"><a href="/register" class="nav-link " aria-current="page">Register</a></li>
+        <li class="nav-item"><a href="/login" class="nav-link " aria-current="page">Log In </a></li>
+      </ul>
+
+      {% endif %}
+    </header>
 
 
-     
-        <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
 
-        {% if session["user_id"]%}
-          <ul class="nav nav-pills">
-            <li class="nav-item"><a href="/" class="nav-link" aria-current="page">Home</a></li>
-            <li class="nav-item"><a href="/checkInReport" class="nav-link">Check In Report</a></li>
-            <li class="nav-item"><a href="/checkOutReport" class="nav-link">Check Out Report</a></li>
-            <li class="nav-item"><a href="/moveReport" class="nav-link">Move Report</a></li>
-            <li class="nav-item"><a class="nav-link" href="/logout">Log Out</a></li>
-          </ul>
-          {% else %}
-          <ul class="nav nav-pills">
-            <li class="nav-item"><a href="/register" class="nav-link " aria-current="page">Register</a></li>
-            <li class="nav-item"><a href="/login" class="nav-link " aria-current="page">Log In </a></li>
-            </ul>
+    <div class="b-example-divider"></div>
+    <div id="alert-container">
 
-          {% endif %}
-        </header>
-        
-      
-
-      <div class="b-example-divider"></div>
-      <div id="alert-container">
-
-      </div>
-      <main class="container-fluid text-center">
-        {% block main %}{% endblock %}
+    </div>
+    <main class="container-fluid text-center">
+      {% block main %}{% endblock %}
     </main>
 
 
 
-   
+
   </div>
   <div class="container">
     <footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
       <p class="col-md-3 mb-0 text-muted">© 2022 Company, Inc</p>
-  
-      <a href="/" class="col-md-3 d-flex align-items-center justify-content-center mb-3 mb-md-0 me-md-auto link-dark text-decoration-none">
-        <svg class="bi me-2" width="40" height="32"><use xlink:href="#bootstrap"></use></svg>
+
+      <a href="/"
+        class="col-md-3 d-flex align-items-center justify-content-center mb-3 mb-md-0 me-md-auto link-dark text-decoration-none">
+        <svg class="bi me-2" width="40" height="32">
+          <use xlink:href="#bootstrap"></use>
+        </svg>
       </a>
-  
+
     </footer>
-   
+
   </div>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
-   <!-- Reference apicaller.js at the end of the body -->
-    <!-- Load Bootstrap JavaScript from your local static folder -->
-     <script src="{{ url_for('static', filename='bootstrap-5.3.1-dist/js/bootstrap.min.js') }}"></script>
-    <!-- Use Bootstrap components and styles here -->
-   <script src="{{ url_for('static', filename='js/flaskApi.js') }}"></script>
+  <!-- Reference apicaller.js at the end of the body -->
+  <!-- Load Bootstrap JavaScript from your local static folder -->
+  <script src="{{ url_for('static', filename='bootstrap-5.3.1-dist/js/bootstrap.min.js') }}"></script>
+  <!-- Use Bootstrap components and styles here -->
+  <script src="{{ url_for('static', filename='js/flaskApi.js') }}"></script>
 
 </body>
 

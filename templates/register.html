@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block main %}
-    <form id="registerForm" data-api-route = "/register" data-target-url="/login">
+    <!-- <form id="registerForm" data-api-route = "/register" data-target-url="/login">
         <div class="mb-3">
             <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="username" name="username" placeholder="Username" type="text">
         </div>
@@ -16,5 +16,33 @@
             <input class="form-control mx-auto w-auto" id="confirmation" name="confirmation" placeholder="confirmation" type="password">
         </div>
         <button id="btnSubmit" class="btn btn-primary btnSubmit" type="submit">Register</button>
-    </form>
+    </form> -->
+    <div class="sidenav">
+        <div class="login-main-text text-sm-start">
+           <h2>Application<br> Login Page</h2>
+           <p>Login or register from here to access.</p>
+        </div>
+     </div>
+     <div class="main">
+        <div class="col-md-6 col-sm-12 m-auto">
+           <div class="login-form login-form text-lg-start">
+              <form id="registerForm" data-api-route = "/register" data-target-url="/login">
+                 <div class="form-group">
+                    <label>User Name</label>
+                    <input type="text" class="form-control" id="username" name="username"  placeholder="User Name">
+                 </div>
+                 <div class="form-group form-group mb-3">
+                    <label>Password</label>
+                    <input type="password" class="form-control" id="password" name="password" placeholder="Password">
+                 </div>
+                 <div class="form-group form-group mb-3">
+                    <label>Confirmation</label>
+                    <input type="password" class="form-control" id="confirmation" name="confirmation" placeholder="Confirmation">
+                 </div>
+                 <button type="submit" class="btn btn-black btnSubmit">Register</button>
+                 <a href="/" class="btn btn-secondary">Login</a>
+              </form>
+           </div>
+        </div>
+     </div>
 {% endblock %}
