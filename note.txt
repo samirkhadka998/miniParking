@@ -91,4 +91,9 @@ CREATE TABLE move (
  
 flask --app app.py --debug 
 
+sqlite> delete from move;
+sqlite> delete from check_out;
+sqlite> delete from check_in;  
+sqlite> update location set isUsed = 0;
+
 pip uninstall sqlalchemy

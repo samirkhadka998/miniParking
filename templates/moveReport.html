@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Move Report
+{% endblock %}
+
+{% block main %}
+<div>
+</div>
+<table class="table table-striped table-hover">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">Type</th>
+        <th scope="col">Vehicle</th>
+        <th scope="col">Discount</th>
+        <th scope="col">From</th>
+        <th scope="col">To</th>
+        <th scope="col">Moved On</th>
+
+
+      </tr>
+    </thead>
+    <tbody>
+        {% for m in moveQuery %}
+        <tr>
+        <td>{{loop.index}}</td>
+        <td>{{m.type}}</td>
+        <td>{{m.brand}} - {{m.number}}</td>
+        <td>{{m.customer}} - {{m.percentage | string}}%</td>
+        <td>{{m.fromLocationName}}</td> 
+        <td>{{m.toLocationName}}</td> 
+        <td>{{m.moveTime}}</td>
+
+        </tr>
+        {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

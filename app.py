@@ -1,3 +1,4 @@
+import calendar
 from flask import Flask, render_template,session, request, redirect, jsonify,g
 from sqlalchemy import desc, func, or_, text
 from helpers import  login_required
@@ -5,8 +6,9 @@ from werkzeug.security import check_password_hash, generate_password_hash
 import secrets
 import logging
 logging.basicConfig(level=logging.DEBUG)  # Set the logging level to DEBUG
-from datetime import datetime
-
+from datetime import datetime, timedelta, timezone
+from sqlalchemy.orm import aliased
+ 
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 
@@ -16,6 +18,9 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///miniParking.db'
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
+
+secret_key = secrets.token_hex(16)
+app.secret_key = 'd127b18e-6524-4e9f-a65c-9c7d83d02a80'
 
 
 
@@ -111,6 +116,7 @@ class Move(db.Model):
     fromLocationId = db.Column(db.Integer, db.ForeignKey('location.id'), nullable=False)
     toLocationId = db.Column(db.Integer, db.ForeignKey('location.id'), nullable=False)
     moveTime = db.Column(db.DateTime, server_default=db.func.current_timestamp())
+    isUsed = db.Column(db.Integer, default=0)
 
 class MoveSchema(ma.Schema):
     class Meta:
@@ -119,8 +125,7 @@ class MoveSchema(ma.Schema):
 
 
 
-secret_key = secrets.token_hex(16)
-app.secret_key = 'd127b18e-6524-4e9f-a65c-9c7d83d02a80'
+
 
 def init_db():
     with app.app_context():
@@ -135,6 +140,9 @@ def init_db():
 @login_required
 def get():
     if request.method == "GET":
+        checkout_alias = aliased(CheckOut)
+
+
 
         query = db.session.query(
         CheckIn.id,
@@ -167,21 +175,24 @@ def get():
         Location.id == Move.toLocationId,
         isouter= True
     ).join(
-        CheckOut,
-        CheckOut.checkInId == CheckIn.id,    
+        checkout_alias,
+        checkout_alias.checkInId == CheckIn.id,    
         isouter= True
     ).join(
         DiscountCard,
         DiscountCard.id == CheckIn.discount,
         isouter= True
-    ).order_by(CheckIn.creationTime.desc()).all()
+    ).filter(checkout_alias.id.is_(None))
+        
+    
+    query = query.filter(Move.isUsed == 1)
+    query = query.order_by(CheckIn.creationTime.desc()).all()
 
 
 
         # .filter(or_(CheckOut.id == None, CheckOut.id.is_(None))).order_by(CheckIn.creationTime.desc()).all() 
     current_time = datetime.utcnow()
     summaryQuery = []
-    print('query : ' ,len(query))
     for row in query:
         row_dict = {
             'id':row.id,
@@ -197,7 +208,7 @@ def get():
         hours_since_creation = (current_time - row.creationTime).total_seconds() / 3600
         row_dict['hour'] = 1 if 0 < hours_since_creation < 1 else int(hours_since_creation)
         totalFee = row.rate * row_dict['hour'] 
-        row_dict['fee'] = totalFee * (1 - row.percentage/100)
+        row_dict['fee'] = round(totalFee * (1 - row.percentage/100),2)
         # property_names = row._fields
         # row_data = row._asdict()  # Convert Row to a dictionary
         # print(property_names)  # Print the property names for this row
@@ -212,6 +223,7 @@ def get():
 
 
 @app.route("/checkInReport")
+@login_required
 def checkInReport():
     checkInsQuery = db.session.query(
         CheckIn.number,
@@ -251,6 +263,105 @@ def checkInReport():
 
     return render_template('checkInReport.html', checkInsQuery = checkInsQuery)
 
+
+@app.route("/checkOutReport")
+@login_required
+def checkOutReport():
+    checkOutQuery = db.session.query(
+        CheckOut.isPaid,
+        CheckOut.amount,
+        CheckOut.createdOn,
+        VehicleType.type,
+        Brand.name.label('brand'),
+        CheckIn.number,
+        CheckIn.creationTime,
+        DiscountCard.percentage,
+        DiscountCard.customer
+    ).join(
+        CheckIn,
+        CheckIn.id == CheckOut.checkInId,
+        isouter= True
+    ).join(
+        VehicleType,
+        VehicleType.id == CheckIn.type,
+        isouter= True
+    ).join(
+        Brand,
+        Brand.id == CheckIn.brand,
+        isouter=True
+    ).join(
+        Move,
+        Move.checkInId == CheckIn.id,
+        isouter=True
+    ).join(
+        DiscountCard,
+        DiscountCard.id == CheckIn.discount,
+        isouter= True
+    ).filter(Move.isUsed == 1)
+    
+    checkOutQuery = checkOutQuery.order_by(CheckOut.createdOn.desc()).all() 
+
+
+    
+    for row in checkOutQuery:
+        property_names = row._fields
+        row_data = row._asdict()  # Convert Row to a dictionary
+        print(property_names)  # Print the property names for this row
+        print(row_data)  # Print the actual row data
+
+    return render_template('checkOutReport.html', checkOutQuery = checkOutQuery)
+
+
+
+
+@app.route("/moveReport")
+@login_required
+def moveReport():
+    alias_location_from = aliased(Location, name="location_from")
+    alias_location_to = aliased(Location, name="location_to")
+    moveQuery = db.session.query(
+        Move.moveTime,
+        VehicleType.type,
+        Brand.name.label('brand'),
+        CheckIn.number,
+        CheckIn.creationTime,
+        DiscountCard.percentage,
+        DiscountCard.customer,
+        alias_location_from.name.label('fromLocationName'),
+        alias_location_to.name.label('toLocationName')
+    ).join(
+        CheckIn,
+        CheckIn.id == Move.checkInId,
+        isouter= True
+    ).join(
+        VehicleType,
+        VehicleType.id == CheckIn.type,
+        isouter= True
+    ).join(
+        Brand,
+        Brand.id == CheckIn.brand,
+        isouter=True
+    ).join(
+        DiscountCard,
+        DiscountCard.id == CheckIn.discount,
+        isouter= True
+    ).outerjoin(
+        alias_location_from,
+        alias_location_from.id == Move.fromLocationId
+    ).outerjoin(
+        alias_location_to,
+        alias_location_to.id == Move.toLocationId
+    ).order_by(Move.moveTime.desc()).all() 
+    
+    for row in moveQuery:
+        property_names = row._fields
+        row_data = row._asdict()  # Convert Row to a dictionary
+        print(property_names)  # Print the property names for this row
+        print(row_data)  # Print the actual row data
+
+    return render_template('moveReport.html', moveQuery = moveQuery)
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     """Log user in"""
@@ -272,7 +383,7 @@ def login():
             elif not password:
                 return jsonify({"error": "Must provide password."}), 400
 
-            existingUser: User = User.query.filter_by(username = userName).first()
+            existingUser: User = User.query.filter_by(username = userName.lower()).first()
 
             if not existingUser or not  check_password_hash(existingUser.hash, password):
                 return jsonify({"error": "Username and password did not match."}), 400
@@ -322,10 +433,14 @@ def register():
             # Ensure password and confirmation match
             elif password != confirmPassword:
                 return jsonify({"error": "Password and confirm password do not match."}), 400
+            
+            existingUser: User = User.query.filter_by(username = userName.lower()).first()
 
+            if(existingUser):
+                 return jsonify({"error": "Please change username."}), 400
 
             hashedPassword = generate_password_hash(password, method="pbkdf2", salt_length=16)
-            user = User(username = userName, hash = hashedPassword)
+            user = User(username = userName.lower(), hash = hashedPassword)
             db.session.add(user)
             db.session.commit()
        
@@ -341,6 +456,7 @@ def register():
 
 
 @app.route("/checkIn", methods = ["POST"])
+@login_required
 def checkIn():
     
     if request.method == "POST":
@@ -365,22 +481,22 @@ def checkIn():
                                     ).filter(
                 CheckOut.id == None,
                 CheckIn.brand == brand,
-                CheckIn.number == number
+                CheckIn.number == number.upper()
                 
                 
                 ).first()   
             print(existingVehicle)
             if existingVehicle:
-                return jsonify({"error": "Vehicle already in parking."}), 400
+                return jsonify({"error": "Vehicle is already in parking."}), 400
 
-            checkIn = CheckIn(type = type, number = number, discount = discount, brand = brand)
+            checkIn = CheckIn(type = type, number = number.upper(), discount = discount, brand = brand)
 
             db.session.add(checkIn)
             db.session.commit()
 
             transit : Location = findLocationTransit()    
 
-            inMove : Move = Move(checkInId = checkIn.id, fromLocationId = transit.id, toLocationId = location)
+            inMove : Move = Move(checkInId = checkIn.id, fromLocationId = transit.id, toLocationId = location, isUsed = 1)
             db.session.add(inMove)
 
             db.session.commit()
@@ -396,6 +512,89 @@ def checkIn():
 
         
 
+@app.route("/checkOut", methods = ["POST"])
+@login_required
+def checkOut():
+    
+    if request.method == "POST":
+        try:
+            checkInId = request.form.get("checkInId")
+            pay = request.form.get("pay")
+            amount = request.form.get("amount")
+            fLocation = request.form.get("cLocation")
+
+
+            if not checkInId or not pay:
+                 return jsonify({"error": "Please provide valid input."}), 400  
+            
+            if not amount:
+                amount = 0
+
+            if not fLocation:
+                return jsonify({"error": "Invalid Location."}), 400  
+            
+            fromLocation : Location = Location.query.filter_by(name = fLocation).first();
+           
+            transit : Location = findLocationTransit() 
+
+            print("to location is :")
+            print(transit.id)   
+
+            move: Move = Move(checkInId = checkInId, fromLocationId = fromLocation.id, toLocationId = transit.id)
+            db.session.add(move)
+
+            locationUpdate(fromLocation.id, 0)
+            
+            checkOut = CheckOut(checkInId = int(checkInId), isPaid = int(pay), amount = amount)
+            db.session.add(checkOut)
+            db.session.commit()
+
+            return jsonify({"message": "Check-Out successful."}), 200
+         
+        except Exception as e:
+            logging.debug(f"error is {e}")
+            return jsonify({"error": str(e)}), 500
+
+
+        
+@app.route("/move", methods = ["POST"])
+@login_required
+def move():
+    
+    if request.method == "POST":
+        try:
+            checkInId = request.form.get("moveHiddenCheckInId")
+            cLocation = request.form.get("moveHiddenCurrentLocation")
+            fLocation = request.form.get("movelocation")
+            print(checkInId,cLocation,fLocation)
+
+            if not checkInId or not cLocation:
+                 return jsonify({"error": "Please provide valid input."}), 400  
+
+            if not fLocation:
+                return jsonify({"error": "Invalid Location."}), 400  
+            
+            fromLocation : Location = Location.query.filter_by(name = cLocation).first();
+
+            toLocation : Location = Location.query.filter_by(id = fLocation).first();  
+
+            setMovesInactive(checkInId=checkInId)
+
+            move: Move = Move(checkInId = checkInId, fromLocationId = fromLocation.id, toLocationId = toLocation.id, isUsed = 1)
+            db.session.add(move)
+
+            locationUpdate(fromLocation.id, 0)
+            locationUpdate(toLocation.id, 1)
+            db.session.commit()
+
+            return jsonify({"message": "Move successful."}), 200
+         
+        except Exception as e:
+            logging.debug(f"error is {e}")
+            return jsonify({"error": str(e)}), 500
+
+
+      
 
 
 @app.route("/checkInDatas", methods= ["GET"])
@@ -447,6 +646,7 @@ def load_Discount():
     if len(discount) == 0:
         return jsonify({"error": "Discount not found."}), 400
     
+    
     return discount
 
 @login_required
@@ -464,10 +664,20 @@ def locationUpdate(id, value):
             location_to_update.isUsed = value
             db.session.commit()
 
+@login_required
+def setMovesInactive(checkInId):
+    moveInactives: Move = Move.query.filter_by(checkInId = checkInId).all();
+
+    if len(moveInactives) > 0:
+        for move in moveInactives :
+            move.isUsed = 0
+            db.session.add(move)
+        
+        db.session.commit()
 
 
 
-
+ 
 if __name__ == '__main__':
     init_db()
     app.run(debug=True)

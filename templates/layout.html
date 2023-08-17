@@ -6,6 +6,13 @@
     <title>Mini Parking: {% block title %}{% endblock %}</title>
     <!-- Load Bootstrap CSS from your local static folder -->
     <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap-5.3.1-dist/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    
+ 
 
 </head>
 
@@ -19,11 +26,10 @@
 
         {% if session["user_id"]%}
           <ul class="nav nav-pills">
-            <li class="nav-item"><a href="/" class="nav-link active" aria-current="page">Home</a></li>
+            <li class="nav-item"><a href="/" class="nav-link" aria-current="page">Home</a></li>
             <li class="nav-item"><a href="/checkInReport" class="nav-link">Check In Report</a></li>
-            <li class="nav-item"><a href="#" class="nav-link">Pricing</a></li>
-            <li class="nav-item"><a href="#" class="nav-link">FAQs</a></li>
-            <li class="nav-item"><a href="#" class="nav-link">About</a></li>
+            <li class="nav-item"><a href="/checkOutReport" class="nav-link">Check Out Report</a></li>
+            <li class="nav-item"><a href="/moveReport" class="nav-link">Move Report</a></li>
             <li class="nav-item"><a class="nav-link" href="/logout">Log Out</a></li>
           </ul>
           {% else %}
@@ -41,7 +47,7 @@
       <div id="alert-container">
 
       </div>
-      <main class="container-fluid py-5 text-center">
+      <main class="container-fluid text-center">
         {% block main %}{% endblock %}
     </main>
 
@@ -51,23 +57,18 @@
   </div>
   <div class="container">
     <footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
-      <p class="col-md-4 mb-0 text-muted">© 2022 Company, Inc</p>
+      <p class="col-md-3 mb-0 text-muted">© 2022 Company, Inc</p>
   
-      <a href="/" class="col-md-4 d-flex align-items-center justify-content-center mb-3 mb-md-0 me-md-auto link-dark text-decoration-none">
+      <a href="/" class="col-md-3 d-flex align-items-center justify-content-center mb-3 mb-md-0 me-md-auto link-dark text-decoration-none">
         <svg class="bi me-2" width="40" height="32"><use xlink:href="#bootstrap"></use></svg>
       </a>
   
-      <ul class="nav col-md-4 justify-content-end">
-        <li class="nav-item"><a href="#" class="nav-link px-2 text-muted">Home</a></li>
-        <li class="nav-item"><a href="#" class="nav-link px-2 text-muted">Features</a></li>
-        <li class="nav-item"><a href="#" class="nav-link px-2 text-muted">Pricing</a></li>
-        <li class="nav-item"><a href="#" class="nav-link px-2 text-muted">FAQs</a></li>
-        <li class="nav-item"><a href="#" class="nav-link px-2 text-muted">About</a></li>
-      </ul>
     </footer>
    
   </div>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
    <!-- Reference apicaller.js at the end of the body -->
     <!-- Load Bootstrap JavaScript from your local static folder -->
      <script src="{{ url_for('static', filename='bootstrap-5.3.1-dist/js/bootstrap.min.js') }}"></script>
