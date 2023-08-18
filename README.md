@@ -1,6 +1,6 @@
 # miniParking
 mini parking system
-#### Video Demo:  <URL HERE>
+#### Video Demo:  https://youtu.be/dtz07z4UDLI
 #### Description:
 This is parking system. It has vehicle brand, number, vehicle type with hourly rate, 
 discount based on type of customer. Here are some major backbones of this app.
