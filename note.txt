@@ -1,42 +1,13 @@
-CREATE TABLE user (
-    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    username TEXT NOT NULL,
-    hash TEXT NOT NULL
-
-);
-
-CREATE TABLE brand (
-    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    name TEXT NOT NULL,
-    sorting int default 0 
-
-);
+--seeding or you can customize according to your choice
 
 insert into brand(name) values ('Yamaha'), ('Suzuki'), ('Honda');
 
-
-
-CREATE TABLE discountCard (
-    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    customer TEXT NOT NULL,
-    percentage REAL NOT NULL
- );
-
 insert into discount_card (customer, percentage) values ('Normal', 10), ('Investor',90), ('Worker', 95), ('None', 0);
-
-CREATE TABLE vehicleType (
-    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    type TEXT NOT NULL
-);
 
 insert into vehicle_Type(type,rate) values ('Car',10), ('Bike',5);
 
-CREATE TABLE location (
-    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    name TEXT NOT NULL,
-    isUsed DEFAULT 0
-);
 
+Please do not change Transit row because it is hardcoded during check out
 insert into location(name,isUsed, isHidden) values 
 ('A',0,0),
 ('B',0,0),
@@ -52,48 +23,17 @@ insert into location(name,isUsed, isHidden) values
 
 
 
-CREATE TABLE checkIn (
-    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    type INT NOT NULL,
-    number TEXT NOT NULL,
-    creationTime DATETIME DEFAULT CURRENT_TIMESTAMP,
-    discount INT NOT NULL,
-    brand INT NOT NULL,
-    FOREIGN KEY (type) REFERENCES vehicleType (id)
-    FOREIGN KEY (discount) REFERENCES discountCard (id),
-    FOREIGN KEY (brand) references brand(id)
-);
-
-CREATE TABLE checkOut (
-    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    checkInId INT NOT NULL,
-    isPaid INT NOT NULL,
-    amount REAL NULL,
-    createdOn DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (checkInId) REFERENCES checkIn (id)
-);
-
-CREATE TABLE move (
-    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    checkInId INTEGER NOT NULL,
-    fromLocationId INTEGER NOT NULL,
-    toLocationId INTEGER NOT NULL,
-    moveTime DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (checkInId) REFERENCES checkIn (id),
-    FOREIGN KEY (fromLocationId) REFERENCES location (id),
-    FOREIGN KEY (toLocationId) REFERENCES location (id)
-);
-
-
 
 
  
  
 flask --app app.py --debug 
 
-sqlite> delete from move;
+--delete old data
+sqlite> delete from check_in;
 sqlite> delete from check_out;
-sqlite> delete from check_in;  
-sqlite> update location set isUsed = 0;
+sqlite> delete from move;
+sqlite> delete from user;
+sqlite> update location set isused = 0;
+sqlite> select * from location;
 
-pip uninstall sqlalchemy

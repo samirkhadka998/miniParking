@@ -7,9 +7,10 @@ discount based on type of customer. Here are some major backbones of this app.
 
 Location
 Location is fixed for now. There are 11 location A,B..J and special locaiton that is called
-Transit , Transit is case when vehcile is just arriving in like Transit to location A or during 
-Check Out like from location B to Transit. Trasit is not selectable, during check in and check out 
-it is automatically added. It is not shown in application any dropdown. Similarly if vehicle a 
+Transit , Transit is virtual location when vehcile is just arriving in, it will be Transit to location A or during 
+Check Out will look like location B to Transit. 
+Transit is just to track movement outside the parking during vehicle checkin and checkout.
+It is automatically added during checkin and checkout. Similarly if vehicle a 
 checks in Location A , Other vehicle cannot check in in same location, until vehicle is moved or 
 check out.
 
@@ -21,7 +22,7 @@ save same checkin vehicle twice error is thrown. Same vehicle is combitnation of
 Report can be viewed in CheckIn Report.
 
 Move
-User can mvoe vehicle form one place to another. Eg from A to B, condition is B should be empty
+User can move vehicle form one place to another. Eg from A to B, condition is B should be empty
 and after moving A will be empty. Hope it makes sense. One user checkout any vehicle , it's 
 location is auto emptied.
 Report can be seen in Move Report.
@@ -33,7 +34,7 @@ Report can be seen in CheckOut Report.
 Main Page(Index)
 Here vehicle CheckIn, Checkout and move all take place. You cannot checkout or move if vehcile is
 not arrived yet. Doesn't make sense. And here only vehicle that are in parking are shown. Not that 
-are already checkout. It is like current live status of our parking system.
+are already checkout. It is like current status of our parking system.
 
 Happy Coding!!
 
